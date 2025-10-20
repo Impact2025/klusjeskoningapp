@@ -1,69 +1,30 @@
+import { FirebaseApp, initializeApp, getApps, getApp } from 'firebase/app';
+import { Auth, getAuth } from 'firebase/auth';
+import { Firestore, getFirestore } from 'firebase/firestore';
+import { FirebaseStorage, getStorage } from 'firebase/storage';
+
 // Firebase configuration
 const firebaseConfig = {
-  projectId: "studio-9831032288-7703b",
-  appId: "1:944059073266:web:ecd08521a4b104db88466b",
-  apiKey: "AIzaSyAtetHx8VhMoe0vdMtm6xdUTT9LlSo36E8",
-  authDomain: "studio-9831032288-7703b.firebaseapp.com",
-  measurementId: "",
-  messagingSenderId: "944059073266",
-  storageBucket: "studio-9831032288-7703b.firebasestorage.app",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "studio-9831032288-7703b",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "1:944059073266:web:ecd08521a4b104db88466b",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "AIzaSyAtetHx8VhMoe0vdMtm6xdUTT9LlSo36E8",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "studio-9831032288-7703b.firebaseapp.com",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? "",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "944059073266",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "studio-9831032288-7703b.firebasestorage.app",
 };
 
-// Lazy initialization - only when accessed in browser
-let firebaseInitialized = false;
-let firebaseApp: any = undefined;
-let firebaseAuth: any = undefined;
-let firebaseDb: any = undefined;
-let firebaseStorage: any = undefined;
+// Initialize Firebase immediately
+const firebaseApp: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const firebaseAuth: Auth = getAuth(firebaseApp);
+const firebaseDb: Firestore = getFirestore(firebaseApp);
+const firebaseStorage: FirebaseStorage = getStorage(firebaseApp);
 
-function initFirebase() {
-  if (typeof window === 'undefined' || firebaseInitialized) {
-    return;
-  }
+// Export the initialized services
+export { firebaseApp as app, firebaseAuth as auth, firebaseDb as db, firebaseStorage as storage };
 
-  try {
-    const { initializeApp, getApps, getApp } = require('firebase/app');
-    const { getAuth } = require('firebase/auth');
-    const { getFirestore } = require('firebase/firestore');
-    const { getStorage } = require('firebase/storage');
-
-    firebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    firebaseAuth = getAuth(firebaseApp);
-    firebaseDb = getFirestore(firebaseApp);
-    firebaseStorage = getStorage(firebaseApp);
-    firebaseInitialized = true;
-  } catch (error) {
-    console.error('Firebase initialization error:', error);
-  }
-}
-
-// Getter functions that initialize on first access
-export const getFirebaseApp = () => {
-  if (typeof window === 'undefined') return undefined;
-  if (!firebaseInitialized) initFirebase();
-  return firebaseApp;
-};
-
-export const getFirebaseAuth = () => {
-  if (typeof window === 'undefined') return undefined;
-  if (!firebaseInitialized) initFirebase();
-  return firebaseAuth;
-};
-
-export const getFirebaseDb = () => {
-  if (typeof window === 'undefined') return undefined;
-  if (!firebaseInitialized) initFirebase();
-  return firebaseDb;
-};
-
-export const getFirebaseStorage = () => {
-  if (typeof window === 'undefined') return undefined;
-  if (!firebaseInitialized) initFirebase();
-  return firebaseStorage;
-};
-
-// Legacy exports for backward compatibility
-export const app = typeof window !== 'undefined' ? getFirebaseApp() : undefined;
-export const auth = typeof window !== 'undefined' ? getFirebaseAuth() : undefined;
-export const db = typeof window !== 'undefined' ? getFirebaseDb() : undefined;
-export const storage = typeof window !== 'undefined' ? getFirebaseStorage() : undefined;
+// Also export getter functions for consistency
+export const getFirebaseApp = () => firebaseApp;
+export const getFirebaseAuth = () => firebaseAuth;
+export const getFirebaseDb = () => firebaseDb;
+export const getFirebaseStorage = () => firebaseStorage;
