@@ -14,17 +14,43 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "studio-9831032288-7703b.firebasestorage.app",
 };
 
-// Initialize Firebase immediately
-const firebaseApp: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const firebaseAuth: Auth = getAuth(firebaseApp);
-const firebaseDb: Firestore = getFirestore(firebaseApp);
-const firebaseStorage: FirebaseStorage = getStorage(firebaseApp);
+// Initialize Firebase services lazily to prevent SSR issues
+let firebaseApp: FirebaseApp;
+let firebaseAuth: Auth;
+let firebaseDb: Firestore;
+let firebaseStorage: FirebaseStorage;
 
-// Export the initialized services
-export { firebaseApp as app, firebaseAuth as auth, firebaseDb as db, firebaseStorage as storage };
+// Getter functions that initialize services only when needed
+export const getFirebaseApp = (): FirebaseApp => {
+  if (!firebaseApp) {
+    firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  }
+  return firebaseApp;
+};
 
-// Also export getter functions for consistency
-export const getFirebaseApp = () => firebaseApp;
-export const getFirebaseAuth = () => firebaseAuth;
-export const getFirebaseDb = () => firebaseDb;
-export const getFirebaseStorage = () => firebaseStorage;
+export const getFirebaseAuth = (): Auth => {
+  if (!firebaseAuth) {
+    firebaseAuth = getAuth(getFirebaseApp());
+  }
+  return firebaseAuth;
+};
+
+export const getFirebaseDb = (): Firestore => {
+  if (!firebaseDb) {
+    firebaseDb = getFirestore(getFirebaseApp());
+  }
+  return firebaseDb;
+};
+
+export const getFirebaseStorage = (): FirebaseStorage => {
+  if (!firebaseStorage) {
+    firebaseStorage = getStorage(getFirebaseApp());
+  }
+  return firebaseStorage;
+};
+
+// For backward compatibility, but recommend using getter functions
+export const app = getFirebaseApp();
+export const auth = getFirebaseAuth();
+export const db = getFirebaseDb();
+export const storage = getFirebaseStorage();
